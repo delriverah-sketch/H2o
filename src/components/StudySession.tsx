@@ -26,9 +26,9 @@ interface QuizData {
   finalResult: Step;
 }
 
-const MathMarkdown = ({ children }: { children: string }) => (
+const MathMarkdown = ({ children }: { children?: string | null }) => (
   <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-    {children}
+    {children || ''}
   </ReactMarkdown>
 );
 
@@ -125,6 +125,14 @@ Devuelve la respuesta en formato JSON.`;
       });
 
       const data = JSON.parse(response.text || '{}') as QuizData;
+      
+      if (!data.steps || !Array.isArray(data.steps) || data.steps.length === 0) {
+        throw new Error("El formato de la respuesta no es válido. Faltan los pasos.");
+      }
+      if (!data.finalResult) {
+        throw new Error("El formato de la respuesta no es válido. Falta el resultado final.");
+      }
+
       setQuizData(data);
       setStatus('steps');
       setCurrentStepIndex(0);

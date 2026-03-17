@@ -8,6 +8,8 @@ import StudySession from './components/StudySession';
 import Calculator from './components/Calculator';
 import Layout from './components/Layout';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,15 +27,17 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={!user ? <Auth /> : <Navigate to="/" />} />
-        <Route path="/" element={user ? <Layout user={user} /> : <Navigate to="/login" />}>
-          <Route index element={<Dashboard user={user} />} />
-          <Route path="study/:topic" element={<StudySession user={user} />} />
-          <Route path="calculator" element={<Calculator />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={!user ? <Auth /> : <Navigate to="/" />} />
+          <Route path="/" element={user ? <Layout user={user} /> : <Navigate to="/login" />}>
+            <Route index element={<Dashboard user={user} />} />
+            <Route path="study/:topic" element={<StudySession user={user} />} />
+            <Route path="calculator" element={<Calculator />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
