@@ -50,11 +50,15 @@ class MathErrorBoundary extends Component<{ children: ReactNode, fallbackText: s
 
 const MathMarkdown = ({ children }: { children?: any }) => {
   const content = typeof children === 'string' ? children : String(children || '');
+  // Usamos un hash simple del contenido como key para forzar el remount si cambia
+  // y así resetear el estado de error del ErrorBoundary
+  const key = content.length > 50 ? content.substring(0, 50) : content;
+  
   return (
-    <MathErrorBoundary fallbackText={content}>
+    <MathErrorBoundary key={key} fallbackText={content}>
       <ReactMarkdown 
         remarkPlugins={[remarkMath]} 
-        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: true }]]}
       >
         {content}
       </ReactMarkdown>
