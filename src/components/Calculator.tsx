@@ -6,13 +6,22 @@ export default function Calculator() {
   const [carrera, setCarrera] = useState<string>('');
   const [puntajeMinimo, setPuntajeMinimo] = useState<string>('');
   const [resultado, setResultado] = useState<number | null>(null);
+  const [error, setError] = useState<string>('');
 
   const calcularPuntaje = (e: React.FormEvent) => {
     e.preventDefault();
-    const prom = parseFloat(promedio);
-    const min = parseFloat(puntajeMinimo);
+    setError('');
+    // Reemplazar comas por puntos para soportar teclados móviles en español
+    const promStr = promedio.replace(',', '.');
+    const minStr = puntajeMinimo.replace(',', '.');
+    
+    const prom = parseFloat(promStr);
+    const min = parseFloat(minStr);
 
-    if (isNaN(prom) || isNaN(min)) return;
+    if (isNaN(prom) || isNaN(min)) {
+      setError('Por favor, ingresa números válidos.');
+      return;
+    }
 
     // El puntaje de admisión UDG se calcula sumando el promedio de bachillerato
     // más el puntaje obtenido en el examen de admisión (PIENSE II o PAA).
@@ -45,15 +54,13 @@ export default function Calculator() {
                 Promedio de Bachillerato (0-100)
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
+                type="text"
+                inputMode="decimal"
                 required
                 value={promedio}
                 onChange={(e) => setPromedio(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Ej. 85.5"
+                placeholder="Ej. 85.5 o 85,5"
               />
             </div>
             
@@ -76,18 +83,22 @@ export default function Calculator() {
                 Puntaje Mínimo de la Carrera
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="200"
+                type="text"
+                inputMode="decimal"
                 required
                 value={puntajeMinimo}
                 onChange={(e) => setPuntajeMinimo(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                placeholder="Ej. 175.5"
+                placeholder="Ej. 175.5 o 175,5"
               />
             </div>
           </div>
+
+          {error && (
+            <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"

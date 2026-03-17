@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Component, ErrorInfo, ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { User } from 'firebase/auth';
 import { doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
@@ -26,15 +26,39 @@ interface QuizData {
   finalResult: Step;
 }
 
+class MathErrorBoundary extends Component<{ children: ReactNode, fallbackText: string }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode, fallbackText: string }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Math rendering error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <span className="text-slate-700 font-mono text-sm break-words whitespace-pre-wrap">{this.props.fallbackText}</span>;
+    }
+    return this.props.children;
+  }
+}
+
 const MathMarkdown = ({ children }: { children?: any }) => {
   const content = typeof children === 'string' ? children : String(children || '');
   return (
-    <ReactMarkdown 
-      remarkPlugins={[remarkMath]} 
-      rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
-    >
-      {content}
-    </ReactMarkdown>
+    <MathErrorBoundary fallbackText={content}>
+      <ReactMarkdown 
+        remarkPlugins={[remarkMath]} 
+        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+      >
+        {content}
+      </ReactMarkdown>
+    </MathErrorBoundary>
   );
 };
 
@@ -130,7 +154,19 @@ Devuelve la respuesta en formato JSON.`;
         }
       });
 
-      let data = JSON.parse(response.text || '{}') as QuizData;
+      const rawText = response.text || '{}';
+      let cleanText = rawText;
+      const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        cleanText = jsonMatch[1];
+      } else {
+        const start = rawText.indexOf('{');
+        const end = rawText.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+          cleanText = rawText.substring(start, end + 1);
+        }
+      }
+      let data = JSON.parse(cleanText) as QuizData;
       
       if (!data.steps || !Array.isArray(data.steps) || data.steps.length === 0) {
         throw new Error("El formato de la respuesta no es válido. Faltan los pasos.");
