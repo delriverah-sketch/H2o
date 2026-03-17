@@ -26,11 +26,17 @@ interface QuizData {
   finalResult: Step;
 }
 
-const MathMarkdown = ({ children }: { children?: string | null }) => (
-  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-    {children || ''}
-  </ReactMarkdown>
-);
+const MathMarkdown = ({ children }: { children?: any }) => {
+  const content = typeof children === 'string' ? children : String(children || '');
+  return (
+    <ReactMarkdown 
+      remarkPlugins={[remarkMath]} 
+      rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
 
 export default function StudySession({ user }: { user: User }) {
   const { topic } = useParams<{ topic: string }>();
@@ -124,7 +130,7 @@ Devuelve la respuesta en formato JSON.`;
         }
       });
 
-      const data = JSON.parse(response.text || '{}') as QuizData;
+      let data = JSON.parse(response.text || '{}') as QuizData;
       
       if (!data.steps || !Array.isArray(data.steps) || data.steps.length === 0) {
         throw new Error("El formato de la respuesta no es válido. Faltan los pasos.");
@@ -132,6 +138,23 @@ Devuelve la respuesta en formato JSON.`;
       if (!data.finalResult) {
         throw new Error("El formato de la respuesta no es válido. Falta el resultado final.");
       }
+
+      // Normalizar datos para evitar crashes si la IA devuelve tipos incorrectos
+      data.steps = data.steps.map(step => ({
+        question: String(step?.question || ''),
+        options: Array.isArray(step?.options) ? step.options.map(o => String(o)) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+        correctOptionIndex: Number(step?.correctOptionIndex) || 0,
+        explanation: String(step?.explanation || '')
+      }));
+
+      data.finalResult = {
+        question: String(data.finalResult?.question || ''),
+        options: Array.isArray(data.finalResult?.options) ? data.finalResult.options.map(o => String(o)) : ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+        correctOptionIndex: Number(data.finalResult?.correctOptionIndex) || 0,
+        explanation: String(data.finalResult?.explanation || '')
+      };
+
+      data.detailedProcess = String(data.detailedProcess || '');
 
       setQuizData(data);
       setStatus('steps');
@@ -204,6 +227,7 @@ Devuelve la respuesta en formato JSON.`;
   };
 
   const renderQuizStep = (step: Step, isFinal: boolean = false) => {
+    if (!step) return null;
     const isCorrect = selectedOption === step.correctOptionIndex;
 
     return (
