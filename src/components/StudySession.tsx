@@ -36,6 +36,12 @@ class MathErrorBoundary extends Component<{ children: ReactNode, fallbackText: s
     return { hasError: true };
   }
 
+  componentDidUpdate(prevProps: { fallbackText: string }) {
+    if (prevProps.fallbackText !== this.props.fallbackText) {
+      this.setState({ hasError: false });
+    }
+  }
+
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Math rendering error:", error, errorInfo);
   }
@@ -48,17 +54,53 @@ class MathErrorBoundary extends Component<{ children: ReactNode, fallbackText: s
   }
 }
 
+class StepErrorBoundary extends Component<{ children: ReactNode, onSkip: () => void, stepIndex: number }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true };
+  }
+
+  componentDidUpdate(prevProps: any) {
+    if (prevProps.stepIndex !== this.props.stepIndex) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Step rendering error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-red-200 text-center animate-in fade-in duration-500">
+          <div className="text-red-500 mb-4 flex justify-center">
+            <XCircle className="h-12 w-12" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Error al mostrar este paso</h3>
+          <p className="text-slate-600 mb-6">La Inteligencia Artificial generó un formato inválido que no se pudo mostrar correctamente.</p>
+          <button onClick={this.props.onSkip} className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition-colors">
+            Continuar al siguiente paso
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const MathMarkdown = ({ children }: { children?: any }) => {
   const content = typeof children === 'string' ? children : String(children || '');
-  // Usamos un hash simple del contenido como key para forzar el remount si cambia
-  // y así resetear el estado de error del ErrorBoundary
-  const key = content.length > 50 ? content.substring(0, 50) : content;
   
   return (
-    <MathErrorBoundary key={key} fallbackText={content}>
+    <MathErrorBoundary fallbackText={content}>
       <ReactMarkdown 
         remarkPlugins={[remarkMath]} 
-        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: true }]]}
+        rehypePlugins={[[rehypeKatex, { strict: false, throwOnError: false }]]}
       >
         {content}
       </ReactMarkdown>
@@ -271,89 +313,91 @@ Devuelve la respuesta en formato JSON.`;
     const isCorrect = selectedOption === step.correctOptionIndex;
 
     return (
-      <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600 font-bold">
-            {isFinal ? 'Resultado Final' : `Paso ${currentStepIndex + 1}`}
-          </div>
-          <div className="text-xl font-bold text-slate-900">
-            <MathMarkdown>{step.question}</MathMarkdown>
-          </div>
-        </div>
-
-        <div className="space-y-3 mb-8">
-          {step.options.map((option, index) => {
-            let buttonClass = "w-full text-left p-4 rounded-xl border-2 transition-all ";
-            
-            if (!isAnswerChecked) {
-              buttonClass += selectedOption === index 
-                ? "border-indigo-600 bg-indigo-50 text-indigo-900" 
-                : "border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700";
-            } else {
-              if (index === step.correctOptionIndex) {
-                buttonClass += "border-emerald-500 bg-emerald-50 text-emerald-900";
-              } else if (selectedOption === index) {
-                buttonClass += "border-red-500 bg-red-50 text-red-900";
-              } else {
-                buttonClass += "border-slate-200 opacity-50 text-slate-500";
-              }
-            }
-
-            return (
-              <button
-                key={index}
-                onClick={() => !isAnswerChecked && setSelectedOption(index)}
-                disabled={isAnswerChecked}
-                className={buttonClass}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="font-medium flex items-center gap-2">
-                    <span>{String.fromCharCode(65 + index)}.</span>
-                    <MathMarkdown>{option}</MathMarkdown>
-                  </div>
-                  {isAnswerChecked && index === step.correctOptionIndex && (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                  )}
-                  {isAnswerChecked && selectedOption === index && index !== step.correctOptionIndex && (
-                    <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {isAnswerChecked && (
-          <div className={`p-4 rounded-xl mb-8 ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
-            <h4 className={`font-bold mb-2 ${isCorrect ? 'text-emerald-800' : 'text-red-800'}`}>
-              {isCorrect ? '¡Correcto!' : 'Incorrecto'}
-            </h4>
-            <div className={isCorrect ? 'text-emerald-700' : 'text-red-700'}>
-              <MathMarkdown>{step.explanation}</MathMarkdown>
+      <StepErrorBoundary stepIndex={currentStepIndex} onSkip={nextStep}>
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600 font-bold">
+              {isFinal ? 'Resultado Final' : `Paso ${currentStepIndex + 1}`}
+            </div>
+            <div className="text-xl font-bold text-slate-900">
+              <MathMarkdown>{step.question}</MathMarkdown>
             </div>
           </div>
-        )}
 
-        <div className="flex justify-end">
-          {!isAnswerChecked ? (
-            <button
-              onClick={checkAnswer}
-              disabled={selectedOption === null}
-              className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Comprobar
-            </button>
-          ) : (
-            <button
-              onClick={nextStep}
-              className="bg-slate-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-2"
-            >
-              {isFinal ? 'Ver Evaluación Final' : 'Siguiente Paso'}
-              <ArrowLeft className="h-5 w-5 rotate-180" />
-            </button>
+          <div className="space-y-3 mb-8">
+            {step.options.map((option, index) => {
+              let buttonClass = "w-full text-left p-4 rounded-xl border-2 transition-all ";
+              
+              if (!isAnswerChecked) {
+                buttonClass += selectedOption === index 
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-900" 
+                  : "border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700";
+              } else {
+                if (index === step.correctOptionIndex) {
+                  buttonClass += "border-emerald-500 bg-emerald-50 text-emerald-900";
+                } else if (selectedOption === index) {
+                  buttonClass += "border-red-500 bg-red-50 text-red-900";
+                } else {
+                  buttonClass += "border-slate-200 opacity-50 text-slate-500";
+                }
+              }
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => !isAnswerChecked && setSelectedOption(index)}
+                  disabled={isAnswerChecked}
+                  className={buttonClass}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium flex items-center gap-2">
+                      <span>{String.fromCharCode(65 + index)}.</span>
+                      <MathMarkdown>{option}</MathMarkdown>
+                    </div>
+                    {isAnswerChecked && index === step.correctOptionIndex && (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                    )}
+                    {isAnswerChecked && selectedOption === index && index !== step.correctOptionIndex && (
+                      <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {isAnswerChecked && (
+            <div className={`p-4 rounded-xl mb-8 ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
+              <h4 className={`font-bold mb-2 ${isCorrect ? 'text-emerald-800' : 'text-red-800'}`}>
+                {isCorrect ? '¡Correcto!' : 'Incorrecto'}
+              </h4>
+              <div className={isCorrect ? 'text-emerald-700' : 'text-red-700'}>
+                <MathMarkdown>{step.explanation}</MathMarkdown>
+              </div>
+            </div>
           )}
+
+          <div className="flex justify-end">
+            {!isAnswerChecked ? (
+              <button
+                onClick={checkAnswer}
+                disabled={selectedOption === null}
+                className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Comprobar
+              </button>
+            ) : (
+              <button
+                onClick={nextStep}
+                className="bg-slate-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-2"
+              >
+                {isFinal ? 'Ver Evaluación Final' : 'Siguiente Paso'}
+                <ArrowLeft className="h-5 w-5 rotate-180" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </StepErrorBoundary>
     );
   };
 
@@ -420,31 +464,33 @@ Devuelve la respuesta en formato JSON.`;
       {status === 'steps' && quizData && renderQuizStep(quizData.steps[currentStepIndex])}
       
       {status === 'process' && quizData && (
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100">
-            <div className="bg-indigo-100 p-3 rounded-xl">
-              <BookOpen className="h-6 w-6 text-indigo-600" />
+        <StepErrorBoundary stepIndex={-1} onSkip={() => setStatus('final')}>
+          <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-100">
+              <div className="bg-indigo-100 p-3 rounded-xl">
+                <BookOpen className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900">Proceso Detallado</h3>
+                <p className="text-slate-500">Revisa los pasos que hemos seguido hasta ahora.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-900">Proceso Detallado</h3>
-              <p className="text-slate-500">Revisa los pasos que hemos seguido hasta ahora.</p>
+
+            <div className="prose prose-slate max-w-none mb-10 prose-headings:text-indigo-900 prose-a:text-indigo-600">
+              <MathMarkdown>{quizData.detailedProcess}</MathMarkdown>
+            </div>
+
+            <div className="flex justify-end pt-6 border-t border-slate-100">
+              <button
+                onClick={() => setStatus('final')}
+                className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              >
+                Resolver la ecuación final
+                <ArrowLeft className="h-5 w-5 rotate-180" />
+              </button>
             </div>
           </div>
-
-          <div className="prose prose-slate max-w-none mb-10 prose-headings:text-indigo-900 prose-a:text-indigo-600">
-            <MathMarkdown>{quizData.detailedProcess}</MathMarkdown>
-          </div>
-
-          <div className="flex justify-end pt-6 border-t border-slate-100">
-            <button
-              onClick={() => setStatus('final')}
-              className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
-            >
-              Resolver la ecuación final
-              <ArrowLeft className="h-5 w-5 rotate-180" />
-            </button>
-          </div>
-        </div>
+        </StepErrorBoundary>
       )}
 
       {status === 'final' && quizData && renderQuizStep(quizData.finalResult, true)}
