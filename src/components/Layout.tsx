@@ -1,10 +1,11 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { BookOpen, Calculator, LogOut, GraduationCap } from 'lucide-react';
 
 export default function Layout({ user }: { user: User }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -59,11 +60,23 @@ export default function Layout({ user }: { user: User }) {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full pb-24 md:pb-8">
         <Outlet />
       </main>
 
-      <footer className="bg-white border-t border-slate-200 py-6 mt-auto">
+      {/* Mobile Navigation Bottom Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <Link to="/" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${location.pathname === '/' ? 'text-indigo-600 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 active:bg-slate-50'}`}>
+          <BookOpen className="h-5 w-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Temario</span>
+        </Link>
+        <Link to="/calculator" className={`flex flex-col items-center justify-center w-full h-full border-l border-slate-100 transition-colors ${location.pathname === '/calculator' ? 'text-indigo-600 bg-indigo-50/50' : 'text-slate-500 hover:text-indigo-600 active:bg-slate-50'}`}>
+          <Calculator className="h-5 w-5 mb-1" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Calculadora</span>
+        </Link>
+      </nav>
+
+      <footer className="bg-white border-t border-slate-200 py-6 mt-auto mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500">
           <p>Desarrollado por Victor Gabriel Zanabria Rivera</p>
           <p className="mt-1">Preparación para el examen de admisión UDG</p>
