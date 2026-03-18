@@ -145,11 +145,12 @@ Sigue estas instrucciones estrictamente:
 3. NO des el resultado final en estos pasos.
 4. Genera una explicación detallada de todo el proceso (detailedProcess) que el usuario acaba de hacer, pero SIN revelar el resultado final.
 5. Finalmente, genera una pregunta de opción múltiple (finalResult) preguntando por el resultado final de la ecuación/problema.
-6. REGLAS DE LENGUAJE Y FORMATO MATEMÁTICO (¡MUY IMPORTANTE!):
-   - Llama a las letras por su nombre exacto ($x$, $y$, $z$, etc.). NUNCA uses la palabra "incógnita" o "variable" para referirte a ellas.
+6. REGLAS DE LENGUAJE Y FORMATO MATEMÁTICO (¡MUY IMPORTANTE Y ESTRICTO!):
+   - PROHIBIDO CONTEXTUALIZAR LAS VARIABLES. Si el problema tiene una "x", llámala EXCLUSIVAMENTE "$x$". NUNCA la llames "incógnita", "variable", "restaurante", "año", "edad", ni ningún otro sustantivo. "$x$" vale "$x$" y nada más.
+   - Lo mismo aplica para cualquier otra letra ($y$, $z$, $a$, $b$, etc.). Usa siempre la letra exacta que el usuario haya proporcionado.
    - Usa formato LaTeX encerrado en signos de dólar ($...$) para TODAS las expresiones matemáticas, números sueltos, variables, fracciones y raíces.
    - Usa los símbolos matemáticos correctos en LaTeX en lugar de palabras (ej. usa $\\sqrt{x}$ en lugar de "raíz de x", usa $\\frac{a}{b}$ en lugar de "a sobre b" o fracciones con diagonal).
-   - Mantén las explicaciones directas, claras y fáciles de leer visualmente.
+   - Trata las ecuaciones de forma puramente algebraica en tus explicaciones. Mantén las explicaciones directas, claras y fáciles de leer visualmente.
 
 Devuelve la respuesta en formato JSON.`;
 
