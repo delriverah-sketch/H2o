@@ -146,6 +146,7 @@ Sigue estas instrucciones estrictamente:
 4. Genera una explicación detallada de todo el proceso (detailedProcess) que el usuario acaba de hacer, pero SIN revelar el resultado final.
 5. Finalmente, genera una pregunta de opción múltiple (finalResult) preguntando por el resultado final de la ecuación/problema.
 6. REGLAS DE LENGUAJE Y FORMATO MATEMÁTICO (¡MUY IMPORTANTE Y ESTRICTO!):
+   - RIGOR MATEMÁTICO: Proporciona el mejor y más riguroso procedimiento matemático posible. NO te saltes pasos. Sé extremadamente estricto con los signos (positivo/negativo), los valores exactos y las leyes de los exponentes. Aplica la jerarquía de operaciones y las propiedades algebraicas paso a paso sin omitir detalles.
    - PROHIBIDO CONTEXTUALIZAR LAS VARIABLES. Si el problema tiene una "x", llámala EXCLUSIVAMENTE "$x$". NUNCA la llames "incógnita", "variable", "restaurante", "año", "edad", ni ningún otro sustantivo. "$x$" vale "$x$" y nada más.
    - PROHIBIDO ASUMIR UNIDADES DE MEDIDA. Si ves letras como "m", "s", "g", "v", trátalas como simples letras algebraicas ($m$, $s$, $g$, $v$). NUNCA asumas que "m" significa "metros" o "s" significa "segundos" a menos que el problema original hable explícitamente de distancias o tiempos con esas palabras.
    - SIGNOS DE INTERROGACIÓN: En español, TODAS las preguntas deben abrir obligatoriamente con el signo '¿' y cerrar con '?'. (Ej. INCORRECTO: "Cuál es el valor de $x$?". CORRECTO: "¿Cuál es el valor de $x$?").
@@ -167,7 +168,7 @@ Devuelve la respuesta en formato JSON.`;
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
-          systemInstruction: "Eres un tutor de matemáticas estrictamente algebraico. REGLAS ABSOLUTAS: 1. NUNCA uses las palabras 'incógnita', 'variable' ni contextualices letras con sustantivos ('restaurante', 'edad'). 2. NUNCA asumas unidades de medida ('m' NO es 'metros', es solo 'm'). 3. TODAS las preguntas en español deben iniciar con '¿' y terminar con '?'. 4. Cuida impecablemente la ortografía, tildes y los ESPACIOS entre palabras y fórmulas matemáticas (ej. 'El valor de $x$ es', NUNCA 'El valor de$x$es').",
+          systemInstruction: "Eres un tutor de matemáticas estrictamente algebraico y riguroso. REGLAS ABSOLUTAS: 1. NUNCA uses las palabras 'incógnita', 'variable' ni contextualices letras con sustantivos ('restaurante', 'edad'). 2. NUNCA asumas unidades de medida ('m' NO es 'metros', es solo 'm'). 3. TODAS las preguntas en español deben iniciar con '¿' y terminar con '?'. 4. Cuida impecablemente la ortografía, tildes y los ESPACIOS entre palabras y fórmulas matemáticas (ej. 'El valor de $x$ es', NUNCA 'El valor de$x$es'). 5. RIGOR MATEMÁTICO: Sé extremadamente estricto con signos, valores y exponentes. No omitas ningún paso algebraico.",
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
