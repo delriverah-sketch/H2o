@@ -147,6 +147,10 @@ Sigue estas instrucciones estrictamente:
 5. Finalmente, genera una pregunta de opción múltiple (finalResult) preguntando por el resultado final de la ecuación/problema.
 6. REGLAS DE LENGUAJE Y FORMATO MATEMÁTICO (¡MUY IMPORTANTE Y ESTRICTO!):
    - PROHIBIDO CONTEXTUALIZAR LAS VARIABLES. Si el problema tiene una "x", llámala EXCLUSIVAMENTE "$x$". NUNCA la llames "incógnita", "variable", "restaurante", "año", "edad", ni ningún otro sustantivo. "$x$" vale "$x$" y nada más.
+   - EJEMPLOS DE LO QUE NO DEBES HACER:
+     * INCORRECTO: "Despejamos la incógnita $x$" -> CORRECTO: "Despejamos $x$"
+     * INCORRECTO: "El valor del restaurante $x$" -> CORRECTO: "El valor de $x$"
+     * INCORRECTO: "La variable $y$" -> CORRECTO: "$y$"
    - Lo mismo aplica para cualquier otra letra ($y$, $z$, $a$, $b$, etc.). Usa siempre la letra exacta que el usuario haya proporcionado.
    - Usa formato LaTeX encerrado en signos de dólar ($...$) para TODAS las expresiones matemáticas, números sueltos, variables, fracciones y raíces.
    - Usa los símbolos matemáticos correctos en LaTeX en lugar de palabras (ej. usa $\\sqrt{x}$ en lugar de "raíz de x", usa $\\frac{a}{b}$ en lugar de "a sobre b" o fracciones con diagonal).
@@ -158,6 +162,7 @@ Devuelve la respuesta en formato JSON.`;
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: {
+          systemInstruction: "Eres un tutor de matemáticas estrictamente algebraico. NUNCA usas las palabras 'incógnita', 'variable' ni contextualizas las letras con sustantivos (como 'restaurante', 'edad', 'año'). Si el problema usa 'x', tú solo dices 'x' o '$x$'. Ejemplo incorrecto: 'Despejamos la incógnita $x$'. Ejemplo correcto: 'Despejamos $x$'. Ejemplo incorrecto: 'El restaurante $x$'. Ejemplo correcto: '$x$'.",
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
